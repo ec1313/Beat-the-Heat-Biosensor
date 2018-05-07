@@ -19,8 +19,6 @@
   Modified 30 April 2018
   By Erin Cressman
 
-  http://url/of/online/tutorial.cc
-
   ENGR 375 Bioinstrumentation and Measurement
   Messiah College Department of Engineering
 */
