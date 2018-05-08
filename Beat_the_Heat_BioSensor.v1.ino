@@ -38,7 +38,7 @@ float potSig; // Input signal from potentiometer
 int count = 0; // To track number of data points
 float timeGap = 0.5; //
 int sensorSum =0; // For calculating average
-float sensorAverage[4]; // Average of last 10 data points
+float sensorAverage[9]; // Average of last 10 data points
 long prevBeatTime = 0; // Time of last beat
 long beatTime=0; //Time of beat
 float beatInterval = 0; // Time since last beat
@@ -50,7 +50,7 @@ boolean upward = false; // True if pulse has positive slope
 boolean downward = false; // True if pulse has negative slope
 float scaled = 20.0; // result of HR*potSig
 int motor = 0; // mapped result of scaled for motor function
-int Signal; // PulseSensor signal  
+int Signal; // filtered PulseSensor signal  
 
 
 void setup() {
@@ -66,22 +66,22 @@ void setup() {
 
 void loop() {
   // Read PulseSensor value  
-  Signal = analogRead(PulseSensorPurplePin);  
+  Signal = analogRead(PulseSensorPurplePin); 
   
   // Add value to running sum and keep count for taking average
   sensorSum = sensorSum+Signal;
   count = count+1;
 
-  // check to see if 13 points have been collected -> calculate and display avg
-  if(count > 12){
+  // check to see if 5 points have been collected -> calculate and display avg
+  if(count > 4){
     
-    // print average of 13 data points and store in 1st spot in Array, saving previous in other spots
-    for (int i=4; i > 1; i--){
+    // print average of 5 data points and store in 1st spot in Array, saving previous in other spots
+    for (int i=9; i > 1; i--){
       sensorAverage[i] = sensorAverage[i-1];
     }
     sensorAverage[1] = sensorAverage[0];
     sensorAverage[0] = sensorSum/count;
-    Serial.println(sensorAverage[0]);
+
     //Reset variables
     count = 0;
     sensorSum = 0;
@@ -89,11 +89,17 @@ void loop() {
     downward = false;
 
     // Determine if there is switch in direction of slope
-    for (int n = 1; n < 4; n++){
-      if (sensorAverage[n] < sensorAverage[n-1]){
+    for (int n = 1; n < 9; n++){
+      if (sensorAverage[n] < sensorAverage[n-1] && sensorAverage[n+1] < sensorAverage[n]){
         downward = true;
-      }else if (sensorAverage[n] > sensorAverage[n-1]){
+        if (upward == true && downward == true){
+          break;
+        }
+      }else if (sensorAverage[n] > sensorAverage[n-1]&& sensorAverage[n+1] > sensorAverage[n]){
         upward = true;
+        if (upward == true && downward == true){
+          break;
+        }
       }
     }
 
@@ -108,13 +114,13 @@ void loop() {
       beatCount += 1;    
 
       // Clear array
-      for (int n = 0; n < 4; n++){
+      for (int n = 0; n < 8; n++){
         sensorAverage[n] = 0;
       }
     }
 
     // Check to see if 20 intervals have been taken
-    if (beatCount > 19){
+    if (beatCount > 15){
       // Average intervals and calculate HR, constraining to reasonable values
       beatIntervalAvg = beatIntervalSum/beatCount;  
       HR = 60000/(2*beatIntervalAvg); // Divide by 2 since slope chances twice in one heart beat
@@ -159,10 +165,7 @@ void loop() {
   // Control fan speed based on HR and Potentiometer
   HR = constrain(HR, 40, 150);
   scaled = HR*potSig;
-  motor = map(scaled, 0, 310, 200, 250);
-  //Serial.print(scaled);
-  //Serial.print(",   ");
-  //Serial.println(motor);
+  motor = map(scaled, 0, 310, 50, 400);
   analogWrite(fanPin, motor);
 
   // Delay to prevent overload
