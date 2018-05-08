@@ -19,6 +19,10 @@
   Modified 30 April 2018
   By Erin Cressman
 
+  Code snippets taken from:
+  Dr. Emily Farrar - ECG Lab, Moving Average Lab
+  Adafruit Pulse Sensor Code
+
   ENGR 375 Bioinstrumentation and Measurement
   Messiah College Department of Engineering
 */
@@ -77,7 +81,7 @@ void loop() {
     }
     sensorAverage[1] = sensorAverage[0];
     sensorAverage[0] = sensorSum/count;
-
+    Serial.println(sensorAverage[0]);
     //Reset variables
     count = 0;
     sensorSum = 0;
@@ -155,7 +159,7 @@ void loop() {
   // Control fan speed based on HR and Potentiometer
   HR = constrain(HR, 40, 150);
   scaled = HR*potSig;
-  motor = map(scaled, 0, 310, 45, 250);
+  motor = map(scaled, 0, 310, 200, 250);
   //Serial.print(scaled);
   //Serial.print(",   ");
   //Serial.println(motor);
